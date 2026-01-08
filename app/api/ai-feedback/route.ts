@@ -58,17 +58,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
         {
         error: "Missing required fields",
-        received: {
+        debug: {
             condition,
-            problem_preview: typeof problem === "string" ? problem.slice(0, 80) : problem,
+            problem_type: typeof problem,
+            problem_preview: typeof problem === "string" ? problem.slice(0, 120) : problem,
+            answer_type: typeof answer,
             answer,
-            reasoning_preview: typeof reasoning === "string" ? reasoning.slice(0, 80) : reasoning,
-            top_level_keys: body ? Object.keys(body) : null
+            reasoning_type: typeof reasoning,
+            reasoning_preview:
+            typeof reasoning === "string" ? reasoning.slice(0, 120) : reasoning,
+            content_type: req.headers.get("content-type"),
+            url: req.url
         }
         },
         { status: 400 }
     );
     }
+
 
 
     /* -------------------------
