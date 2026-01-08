@@ -23,33 +23,52 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    /* -------------------------
-       2) Parse request body + debug logs
+        /* -------------------------
+    2) Parse request body
     ------------------------- */
-    console.log("content-type:", req.headers.get("content-type"));
-    console.log("raw url:", req.url);
 
     const body = await req.json();
+    console.log("content-type:", req.headers.get("content-type"));
+    console.log("raw url:", req.url);
     console.log("body:", body);
 
-    const { condition, problem, answer, reasoning } = body ?? {};
+    // Qualtrics often wraps the JSON under a single key (e.g., "payload" or "Parameter to Web Service...")
+    let data: any = body;
 
-    // Helpful diagnostics for Qualtrics debugging (remove later)
+    // If body has exactly 1 key and the value is an object, unwrap it
+    if (body && typeof body === "object" && !Array.isArray(body)) {
+    const keys = Object.keys(body);
+    if (keys.length === 1 && typeof body[keys[0]] === "object") {
+        data = body[keys[0]];
+    }
+    // If it's a JSON string under a single key, parse it
+    if (keys.length === 1 && typeof body[keys[0]] === "string") {
+        try {
+        data = JSON.parse(body[keys[0]]);
+        } catch {
+        // keep as-is
+        }
+    }
+    }
+
+    const { condition, problem, answer, reasoning } = data ?? {};
+
     if (!condition || !problem || !reasoning) {
-      return NextResponse.json(
+    return NextResponse.json(
         {
-          error: "Missing required fields",
-          received: {
+        error: "Missing required fields",
+        received: {
             condition,
             problem_preview: typeof problem === "string" ? problem.slice(0, 80) : problem,
             answer,
-            reasoning_preview:
-              typeof reasoning === "string" ? reasoning.slice(0, 80) : reasoning,
-          },
+            reasoning_preview: typeof reasoning === "string" ? reasoning.slice(0, 80) : reasoning,
+            top_level_keys: body ? Object.keys(body) : null
+        }
         },
         { status: 400 }
-      );
+    );
     }
+
 
     /* -------------------------
        3) Build AI prompt
