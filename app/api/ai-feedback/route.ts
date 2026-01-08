@@ -24,6 +24,10 @@ export async function POST(req: NextRequest) {
     ------------------------- */
 
     const body = await req.json();
+    console.log("content-type:", req.headers.get("content-type"));
+    console.log("raw url:", req.url);
+    console.log("body:", body);
+
 
     const {
       condition,
@@ -126,11 +130,8 @@ ${reasoning}
   } catch (error) {
     console.error("AI feedback error:", error);
     return NextResponse.json(
-      { error: "Server error" },
+      { error: "Server error!" },
       { status: 500 }
     );
   }
 }
-git remote add origin https://github.com/05d762de69/practical-intervention-research
-git branch -M main
-git push -u origin main
